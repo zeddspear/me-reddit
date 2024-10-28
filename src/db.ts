@@ -5,10 +5,12 @@ import {
   Options,
 } from "@mikro-orm/postgresql";
 import { Post } from "./entity/post/post.entity";
+import { User } from "./entity/user/user.entity";
 
 export interface Services {
   orm: MikroORM;
   em: EntityManager;
+  user: EntityRepository<User>;
   post: EntityRepository<Post>;
 }
 
@@ -33,6 +35,7 @@ export async function initORM(options?: Options): Promise<Services> {
   return (cache = {
     orm,
     em: orm.em,
+    user: orm.em.getRepository(User),
     post: orm.em.getRepository(Post),
   });
 }
