@@ -3,6 +3,7 @@ import config from "./mikro-orm.config"; // Importing MikroORM configuration
 import { initORM } from "./db"; // Importing ORM initialization function
 import "dotenv/config"; // Importing and configuring dotenv for environment variables
 import {
+  __cookiename__,
   __dbpassword__,
   __port__,
   __prod__,
@@ -41,7 +42,7 @@ async function main() {
   // Initialize session storage.
   app.use(
     session({
-      name: "qid",
+      name: __cookiename__,
       store: redisStore,
       resave: false, // required: force lightweight session keep alive (touch)
       saveUninitialized: false, // recommended: only save session when data exists
@@ -69,7 +70,10 @@ async function main() {
 
   app.use(
     "/graphql", // Define GraphQL endpoint
-    cors<cors.CorsRequest>(), // Enable CORS
+    cors<cors.CorsRequest>({
+      origin: "http://localhost:3000",
+      credentials: true,
+    }), // Enable CORS
     express.json(), // Parse JSON requests
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => {

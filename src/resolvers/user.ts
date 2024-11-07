@@ -11,6 +11,7 @@ import {
   Resolver,
 } from "type-graphql";
 import argon2 from "argon2";
+import { __cookiename__ } from "../constants";
 
 @InputType()
 class UsernameAndPasswordInput {
@@ -62,7 +63,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "Username",
+            field: "username",
             message: "Username must be at least 3 characters long!",
           },
         ],
@@ -73,7 +74,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "Password",
+            field: "password",
             message: "Password must be at least 8 characters long!",
           },
         ],
@@ -92,7 +93,7 @@ export class UserResolver {
     } catch (err) {
       if (err.code === "23505") {
         return {
-          errors: [{ field: "Username", message: "Username already exists" }],
+          errors: [{ field: "username", message: "Username already exists" }],
         };
       }
     }
@@ -107,46 +108,69 @@ export class UserResolver {
     @Arg("options") options: UsernameAndPasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const user = await em.findOneOrFail(User, { username: options.username });
+    try {
+      const user = await em.findOneOrFail(User, { username: options.username });
 
-    if (!user) {
+      const valid = await argon2.verify(user.password, options.password);
+
+      if (!valid) {
+        return {
+          errors: [
+            {
+              field: "password",
+              message: "Invalid Password",
+            },
+          ],
+        };
+      }
+
+      req.session.userID = user.id;
+      // to check if session is saving if not throw an error
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(null);
+          }
+        });
+      });
+
       return {
-        errors: [
-          {
-            field: "Username",
-            message: "Username does not exists",
-          },
-        ],
+        user,
       };
+    } catch (error) {
+      if (error.message.includes("User not found")) {
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "Username does not exists",
+            },
+          ],
+        };
+      } else {
+        return {
+          errors: [{ field: "username", message: error.message }],
+        };
+      }
     }
+  }
 
-    const valid = await argon2.verify(user.password, options.password);
-
-    if (!valid) {
-      return {
-        errors: [
-          {
-            field: "Password",
-            message: "Invalid Password",
-          },
-        ],
-      };
-    }
-
-    req.session.userID = user.id;
-    // to check if session is saving if not throw an error
-    await new Promise((resolve, reject) => {
-      req.session.save((err) => {
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: MyContext): Promise<boolean> {
+    return new Promise((resolve) => {
+      req.session.destroy((err) => {
+        res.clearCookie(__cookiename__);
         if (err) {
-          reject(err);
-        } else {
-          resolve(null);
+          console.log(err);
+          resolve(false);
+          return;
         }
+
+        resolve(true);
+        return;
       });
     });
-
-    return {
-      user,
-    };
   }
 }
