@@ -21,7 +21,7 @@ import { PostResolver } from "./resolvers/post"; // Importing PostResolver
 import { UserResolver } from "./resolvers/user";
 import RedisStore from "connect-redis";
 import session from "express-session";
-import { createClient } from "redis";
+import Redis from "ioredis";
 
 async function main() {
   const db = await initORM(config); // Initialize ORM with configuration
@@ -29,8 +29,7 @@ async function main() {
   const app = express(); // Create an Express application
 
   // Initialize client.
-  let redisClient = createClient();
-  redisClient.connect().catch(console.error);
+  let redisClient = new Redis();
 
   // Initialize store.
   let redisStore = new RedisStore({
@@ -77,7 +76,7 @@ async function main() {
     express.json(), // Parse JSON requests
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => {
-        return { em: db.em.fork(), req, res }; // Provide context with ORM entity manager
+        return { em: db.em.fork(), req, res, redisClient }; // Provide context with ORM entity manager
       },
     })
   );

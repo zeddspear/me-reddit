@@ -1,6 +1,27 @@
 import { MyContext } from "src/types";
 import { Post } from "../entity/post/post.entity";
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Field,
+  InputType,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
+import { User } from "../entity/user/user.entity";
+import { isAuth } from "../middleware/isAuth";
+
+@InputType()
+class PostInput {
+  @Field()
+  title: string;
+
+  @Field()
+  text: string;
+}
 
 @Resolver()
 export class PostResolver {
@@ -18,12 +39,33 @@ export class PostResolver {
   }
 
   @Mutation(() => Post)
+  @UseMiddleware(isAuth)
   async createPost(
-    @Arg("title") title: string,
-    @Ctx() { em }: MyContext
+    @Arg("options") options: PostInput,
+    @Ctx() { em, req }: MyContext
   ): Promise<Post> {
-    const post = em.create(Post, { title });
-    await em.persist(post).flush();
+    const user = await em.findOne(User, { id: Number(req.session.userID) });
+
+    if (!user) {
+      throw new Error("Logged in user is not authenticated");
+    }
+
+    const post = em.create(Post, {
+      title: options.title,
+      text: options.text,
+      points: 0,
+      creator: user,
+    });
+
+    console.log("Post: ", post);
+
+    try {
+      await em.persist(post).flush();
+    } catch (error) {
+      console.error("Error persisting post: ", error);
+      throw new Error("Failed to create post");
+    }
+
     return post;
   }
 

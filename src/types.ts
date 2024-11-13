@@ -5,6 +5,7 @@ import {
   AbstractSqlPlatform,
 } from "@mikro-orm/postgresql";
 import { Request, Response } from "express";
+import { Redis } from "ioredis";
 
 export type MyContext = {
   em: SqlEntityManager<
@@ -12,4 +13,5 @@ export type MyContext = {
   >;
   req: Request;
   res: Response;
+  redisClient: Redis;
 };
