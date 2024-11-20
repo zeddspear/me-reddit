@@ -11,6 +11,11 @@ const config: Options = {
   host: "localhost",
   port: 5432,
 
+  migrations: {
+    path: "dist/migrations",
+    pathTs: "src/migrations",
+  },
+
   // folder-based discovery setup, using common filename suffix
   entities: ["dist/**/*.entity.js"],
   entitiesTs: ["src/**/*.entity.ts"],

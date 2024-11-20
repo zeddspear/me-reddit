@@ -6,6 +6,7 @@ import {
 } from "@mikro-orm/postgresql";
 import { Post } from "./entity/post/post.entity";
 import { User } from "./entity/user/user.entity";
+import { seedDatabase } from "./seeders/DataBaseSeeder";
 
 export interface Services {
   orm: MikroORM;
@@ -22,6 +23,9 @@ export async function initORM(options?: Options): Promise<Services> {
   }
 
   const orm = await MikroORM.init(options);
+
+  // For seeding data
+  // seedDatabase(orm);
 
   // Get SQL queries to update the schema
   const diff = await orm.schema.getUpdateSchemaSQL();

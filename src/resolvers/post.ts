@@ -13,6 +13,7 @@ import {
 } from "type-graphql";
 import { User } from "../entity/user/user.entity";
 import { isAuth } from "../middleware/isAuth";
+import { QueryOrder } from "@mikro-orm/core";
 
 @InputType()
 class PostInput {
@@ -26,8 +27,25 @@ class PostInput {
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    return em.findAll(Post, {});
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+    @Ctx() { em }: MyContext
+  ): Promise<Post[]> {
+    const maxLimit = Math.min(50, limit);
+    console.log(limit);
+    const qb = em.createQueryBuilder(Post);
+
+    qb.select("*")
+      .orderBy({ createdAt: QueryOrder.ASC })
+      .limit(Number(maxLimit) ?? 10);
+
+    if (cursor) {
+      const convertedCursor = new Date(Number(cursor!));
+      qb.where({ createdAt: { $gte: convertedCursor } });
+    }
+
+    return qb.execute();
   }
 
   @Query(() => Post, { nullable: true })

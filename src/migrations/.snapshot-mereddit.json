@@ -35,8 +35,26 @@
           "length": 0,
           "mappedType": "date"
         },
-        "title": {
-          "name": "title",
+        "username": {
+          "name": "username",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "password": {
+          "name": "password",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
@@ -45,11 +63,31 @@
           "mappedType": "text"
         }
       },
-      "name": "post",
+      "name": "user",
       "schema": "public",
       "indexes": [
         {
-          "keyName": "post_pkey",
+          "columnNames": [
+            "username"
+          ],
+          "composite": false,
+          "keyName": "user_username_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "email"
+          ],
+          "composite": false,
+          "keyName": "user_email_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "keyName": "user_pkey",
           "columnNames": [
             "id"
           ],
@@ -94,8 +132,8 @@
           "length": 0,
           "mappedType": "date"
         },
-        "username": {
-          "name": "username",
+        "title": {
+          "name": "title",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
@@ -103,31 +141,40 @@
           "nullable": false,
           "mappedType": "text"
         },
-        "password": {
-          "name": "password",
+        "text": {
+          "name": "text",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "mappedType": "text"
+        },
+        "points": {
+          "name": "points",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "0",
+          "mappedType": "integer"
+        },
+        "creator_id": {
+          "name": "creator_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
         }
       },
-      "name": "user",
+      "name": "post",
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "username"
-          ],
-          "composite": false,
-          "keyName": "user_username_unique",
-          "constraint": true,
-          "primary": false,
-          "unique": true
-        },
-        {
-          "keyName": "user_pkey",
+          "keyName": "post_pkey",
           "columnNames": [
             "id"
           ],
@@ -138,7 +185,20 @@
         }
       ],
       "checks": [],
-      "foreignKeys": {},
+      "foreignKeys": {
+        "post_creator_id_foreign": {
+          "constraintName": "post_creator_id_foreign",
+          "columnNames": [
+            "creator_id"
+          ],
+          "localTableName": "public.post",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user",
+          "updateRule": "cascade"
+        }
+      },
       "nativeEnums": {}
     }
   ],

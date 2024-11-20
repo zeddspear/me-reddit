@@ -1,13 +1,16 @@
-import { Migration } from '@mikro-orm/migrations';
+import { Migration } from "@mikro-orm/migrations";
 
 export class Migration20241026081304 extends Migration {
-
   override async up(): Promise<void> {
-    this.addSql(`create table "post" ("id" serial primary key, "created_at" date not null, "updated_at" date not null, "title" text not null);`);
+    this.addSql(
+      `create table "post" ("id" serial primary key, "created_at" date not null, "updated_at" date not null, "title" text not null);`
+    );
 
     this.addSql(`alter table "user" add column "password" text not null;`);
     this.addSql(`alter table "user" rename column "title" to "username";`);
-    this.addSql(`alter table "user" add constraint "user_username_unique" unique ("username");`);
+    this.addSql(
+      `alter table "user" add constraint "user_username_unique" unique ("username");`
+    );
   }
 
   override async down(): Promise<void> {
@@ -18,5 +21,4 @@ export class Migration20241026081304 extends Migration {
 
     this.addSql(`alter table "user" rename column "username" to "title";`);
   }
-
 }
